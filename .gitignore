@@ -1,0 +1,10 @@
+.idea\*
+labs\.idea\*
+
+labs\1\.idea\*
+labs\1\out\*
+labs\1\lab1.iml
+
+labs\2\.idea\*
+labs\2\out\*
+labs\1\lab2.iml
