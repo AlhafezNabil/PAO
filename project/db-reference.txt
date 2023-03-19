@@ -13,11 +13,20 @@ Table books {
   available_copies int
 }
 
+Table person {
+  id int PK
+  name varchar
+  email varchar
+  phone_number varchar
+}
+
 Table authors {
   id int PK
   name varchar
   birth_date date
 }
+
+Ref:authors.id < person.id
 
 Table readers {
   id int PK
@@ -25,6 +34,8 @@ Table readers {
   email varchar
   phone_number varchar
 }
+
+Ref:readers.id < person.id
 
 Table borrowings {
   id int PK
@@ -43,6 +54,7 @@ Table librarians {
   library_id int
 
 }
+Ref:librarians.id < person.id
 
 Table libraries {
   id int PK
@@ -73,6 +85,8 @@ Ref: reader_subscriptions.reader_id < readers.id
 Ref: reader_subscriptions.library_id - libraries.id
 Ref: reader_subscriptions.section_id - sections.id
 Ref: reader_subscriptions.subscription_plan_id - subscription_plans.id
+
+
 Ref: books.section_id - sections.id
 Ref: books.author_id - authors.id
 Ref: borrowings.book_id - books.id
