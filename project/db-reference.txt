@@ -1,0 +1,81 @@
+Table sections {
+  id int PK
+  name varchar
+  library_id int
+}
+
+Table books {
+  id int PK
+  title varchar
+  author_id int
+  section_id int
+  total_copies int
+  available_copies int
+}
+
+Table authors {
+  id int PK
+  name varchar
+  birth_date date
+}
+
+Table readers {
+  id int PK
+  name varchar
+  email varchar
+  phone_number varchar
+}
+
+Table borrowings {
+  id int PK
+  book_id int
+  reader_id int
+  borrowed_date date
+  due_date date
+  returned_date date
+}
+
+Table librarians {
+  id int PK
+  name varchar
+  email varchar
+  phone_number varchar
+  library_id int
+
+}
+
+Table libraries {
+  id int PK
+  name varchar
+  address varchar
+  phone_number varchar
+}
+
+Table subscription_plans {
+  id int PK
+  name varchar
+  duration int
+  price decimal
+}
+
+Table reader_subscriptions {
+  id int PK
+  reader_id int
+  library_id int
+  section_id int
+  subscription_plan_id int
+  start_date date
+  end_date date
+}
+
+
+Ref: reader_subscriptions.reader_id < readers.id
+Ref: reader_subscriptions.library_id - libraries.id
+Ref: reader_subscriptions.section_id - sections.id
+Ref: reader_subscriptions.subscription_plan_id - subscription_plans.id
+Ref: books.section_id - sections.id
+Ref: books.author_id - authors.id
+Ref: borrowings.book_id - books.id
+Ref: borrowings.reader_id - readers.id
+Ref: sections.library_id > libraries.id
+Ref: librarians.library_id > libraries.id
