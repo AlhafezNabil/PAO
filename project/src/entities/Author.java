@@ -1,5 +1,6 @@
 package entities;
 
+
 public class Author extends Person {
 
     private String birthDate;

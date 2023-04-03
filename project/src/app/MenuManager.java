@@ -79,7 +79,8 @@ public class MenuManager {
         String address = scanner.nextLine();
         System.out.print("Enter library phone number: ");
         String phoneNumber = scanner.nextLine();
-        dbManager.addLibrary(id, name, address, phoneNumber);
+        Library library = new Library(id, name, address, phoneNumber);
+        dbManager.addLibrary(library);
     }
 
     private void addSection() {

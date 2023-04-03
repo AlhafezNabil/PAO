@@ -284,6 +284,24 @@ public class DBManager {
             return mapErrorToBaseError(exception);
         }
     }
+    public AppResult<List<Section>> getAllSectionsInLibrary() {
+        String sql = "SELECT * FROM sections";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = statement.getResultSet();
+            List<Section> sections = new ArrayList<>();
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                int libraryId = resultSet.getInt("library_id");
+
+                Section section = new Section(id, name, libraryId);
+                sections.add(section);
+            }
+            return new AppResult<>(sections);
+        } catch (SQLException sqlException) {
+            return mapErrorToBaseError(sqlException);
+        }
+    }
 
     public AppResult<List<Section>> getAllSectionsInLibrary(int libId) {
         String sql = "SELECT * FROM sections WHERE library_id = ?";
