@@ -1,6 +1,6 @@
 package app;
 
-import db.LibraryDBManager;
+import db.DBManager;
 import entities.*;
 
 import java.util.List;
@@ -8,11 +8,11 @@ import java.util.Scanner;
 
 public class MenuManager {
 
-    private final LibraryDBManager dbManager;
+    private final DBManager dbManager;
     private final Scanner scanner;
 
     public MenuManager() {
-        dbManager = new LibraryDBManager();
+        dbManager = DBManager.getInstance();
         scanner = new Scanner(System.in);
     }
 

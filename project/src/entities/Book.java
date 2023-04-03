@@ -1,5 +1,7 @@
 package entities;
 
+import java.util.Date;
+
 public class Book {
     private int id;
     private String title;
@@ -7,9 +9,9 @@ public class Book {
     private int sectionId;
     private int totalCopies;
     private int availableCopies;
-    private int publicationYear;
+    private String publicationYear;
 
-    public Book(int id, String title, int authorId, int sectionId, int publicationYear, int totalCopies, int availableCopies) {
+    public Book(int id, String title, int authorId, int sectionId, String publicationYear, int totalCopies, int availableCopies) {
         this.id = id;
         this.title = title;
         this.authorId = authorId;
@@ -19,7 +21,7 @@ public class Book {
         this.publicationYear = publicationYear;
     }
 
-     
+
 
     public int getId() {
         return id;
@@ -69,11 +71,11 @@ public class Book {
         this.availableCopies = availableCopies;
     }
 
-    public int getPublicationYear() {
+    public String getPublicationYear() {
         return publicationYear;
     }
 
-    public void setPublicationYear(int publicationYear) {
+    public void setPublicationYear(String publicationYear) {
         this.publicationYear = publicationYear;
     }
 }
