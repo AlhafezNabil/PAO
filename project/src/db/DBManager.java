@@ -28,9 +28,9 @@ public class DBManager {
 
 
     private static final String MYSQL_JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
-    private static final String DB_URL = "jdbc:mysql://localhost/eap";
+    private static final String DB_URL = "jdbc:mysql://localhost/pao_library_database";
     private static final String USERNAME = "root";
-    private static final String PASSWORD = "root";
+    private static final String PASSWORD = "Admin@123456";
 
 
     private Connection connection;
@@ -50,12 +50,12 @@ public class DBManager {
         try {
             Class.forName(MYSQL_JDBC_DRIVER);
             connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
+            System.out.println("MySQL connection available " + connection.getSchema());
         } catch (ClassNotFoundException e) {
-            System.out.println("MySQL driver not available: " + e.getMessage());
-        } catch (SQLException e) {
-            System.out.println("Could not connect to database: " + e.getMessage());
+            System.out.println("MySQL Exception driver not available: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("MySQL Exception Could not connect to database: " + e.getMessage());
         }
-        System.out.println("MySQL connection available");
     }
 
 
@@ -74,13 +74,17 @@ public class DBManager {
     }
 
     public static <T> AppResult<T> mapErrorToBaseError(Exception exception) {
-        printError(exception);
-        if (exception instanceof SQLException) return new AppResult<T>(new CustomError(exception.getMessage()));
+        try {
+            printError(exception);
+            if (exception instanceof SQLException) return new AppResult<T>(new CustomError(exception.getMessage()));
+
+            return new AppResult<T>(new UnExpectedError("UnKnown error happened"));
 
 
-        return new AppResult<T>(new UnExpectedError("UnKnown error happened"));
+        } catch (Exception e) {
+            return new AppResult<T>(new UnExpectedError("UnKnown error happened"));
 
-
+        }
     }
 
     //    ======================================== Library ===========================================================
@@ -110,7 +114,7 @@ public class DBManager {
             int id = resultSet.getInt("id");
             String name = resultSet.getString("name");
             String address = resultSet.getString("address");
-            String phoneNumber = resultSet.getString("phoneNumber");
+            String phoneNumber = resultSet.getString("phone_number");
 
             Library library = new Library(id, name, address, phoneNumber);
             return new AppResult<>(library);
@@ -284,11 +288,13 @@ public class DBManager {
             return mapErrorToBaseError(exception);
         }
     }
+
     public AppResult<List<Section>> getAllSectionsInLibrary() {
         String sql = "SELECT * FROM sections";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             ResultSet resultSet = statement.getResultSet();
             List<Section> sections = new ArrayList<>();
+
             while (resultSet.next()) {
                 int id = resultSet.getInt("id");
                 String name = resultSet.getString("name");
@@ -298,7 +304,7 @@ public class DBManager {
                 sections.add(section);
             }
             return new AppResult<>(sections);
-        } catch (SQLException sqlException) {
+        } catch (Exception sqlException) {
             return mapErrorToBaseError(sqlException);
         }
     }
@@ -356,7 +362,7 @@ public class DBManager {
         try (PreparedStatement statement = connection.prepareStatement(sqlAuthor)) {
             statement.setInt(1, author.getId());
             statement.setString(2, author.getName());
-            statement.setDate(3, java.sql.Date.valueOf(author.getBirthDate()));
+            statement.setDate(3, Date.valueOf(author.getBirthDate()));
             statement.execute();
             return new AppResult<>(author);
         } catch (Exception exception) {
@@ -404,7 +410,7 @@ public class DBManager {
         try (PreparedStatement statement = connection.prepareStatement(sqlAuthor)) {
             statement.setInt(1, author.getId());
             statement.setString(2, author.getName());
-            statement.setDate(3, java.sql.Date.valueOf(author.getBirthDate()));
+            statement.setDate(3, Date.valueOf(author.getBirthDate()));
             statement.executeUpdate();
             return new AppResult<>(new EmptyEntity());
         } catch (SQLException sqlException) {
@@ -494,7 +500,7 @@ public class DBManager {
             statement.setString(3, reader.getEmail());
             statement.setString(4, reader.getPhoneNumber());
             statement.setString(5, reader.getLocation());
-            statement.setDate(6, java.sql.Date.valueOf(reader.getCreatedDate()));
+            statement.setDate(6, Date.valueOf(reader.getCreatedDate()));
             statement.executeUpdate();
             return new AppResult<>(new EmptyEntity());
         } catch (SQLException sqlException) {
@@ -525,7 +531,7 @@ public class DBManager {
             statement.setString(2, book.getTitle());
             statement.setInt(3, book.getAuthorId());
             statement.setInt(4, book.getSectionId());
-            statement.setDate(5, java.sql.Date.valueOf(book.getPublicationYear()));
+            statement.setDate(5, Date.valueOf(book.getPublicationYear()));
             statement.setInt(6, book.getTotalCopies());
             statement.setInt(7, book.getAvailableCopies());
 
@@ -590,7 +596,7 @@ public class DBManager {
             statement.setString(2, book.getTitle());
             statement.setInt(3, book.getAuthorId());
             statement.setInt(4, book.getSectionId());
-            statement.setDate(5, java.sql.Date.valueOf(book.getPublicationYear()));
+            statement.setDate(5, Date.valueOf(book.getPublicationYear()));
             statement.setInt(6, book.getTotalCopies());
             statement.setInt(7, book.getAvailableCopies());
 
@@ -620,8 +626,8 @@ public class DBManager {
             statement.setInt(1, borrowing.getId());
             statement.setInt(2, borrowing.getReaderId());
             statement.setInt(3, borrowing.getBookId());
-            statement.setDate(4, java.sql.Date.valueOf(borrowing.getBorrowedDate()));
-            statement.setDate(5, java.sql.Date.valueOf(borrowing.getDueDate()));
+            statement.setDate(4, Date.valueOf(borrowing.getBorrowedDate()));
+            statement.setDate(5, Date.valueOf(borrowing.getDueDate()));
             statement.setDate(6, null);
             statement.executeUpdate();
             return new AppResult<>(new EmptyEntity());
@@ -637,7 +643,7 @@ public class DBManager {
         /// TODO SHOULD BE UPDATE
         try (PreparedStatement statement = connection.prepareStatement(sqlBook)) {
             statement.setInt(1, id);
-            statement.setDate(6, java.sql.Date.valueOf(LocalDate.now()));
+            statement.setDate(6, Date.valueOf(LocalDate.now()));
             statement.executeUpdate();
             return new AppResult<>(new EmptyEntity());
 
@@ -669,7 +675,7 @@ public class DBManager {
                 books.add(book);
             }
             return new AppResult<>(books);
-         } catch (SQLException sqlException) {
+        } catch (SQLException sqlException) {
             return mapErrorToBaseError(sqlException);
         }
     }

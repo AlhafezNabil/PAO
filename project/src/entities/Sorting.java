@@ -1,16 +1,22 @@
 package entities;
 
 public class Sorting {
-    private boolean isDateSorted;
-    private boolean isAlphabeticSorted;
+    private Boolean isDateSorted;
+    private Boolean isAlphabeticSorted;
 
-    Sorting() {
+    public Sorting() {
 
     }
 
-    Sorting(boolean isDateSorted, boolean isAlphabeticSorted) {
+    public Sorting(boolean isDateSorted, boolean isAlphabeticSorted) {
         this.isDateSorted = isDateSorted;
         this.isAlphabeticSorted = isAlphabeticSorted;
 
+    }
+
+
+    public Sorting(Boolean isDateSorted, Boolean isAlphabeticSorted) {
+        this.isDateSorted = isDateSorted;
+        this.isAlphabeticSorted = isAlphabeticSorted;
     }
 }

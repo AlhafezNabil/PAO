@@ -11,7 +11,13 @@ public class Book {
     private int availableCopies;
     private String publicationYear;
 
-    public Book(int id, String title, int authorId, int sectionId, String publicationYear, int totalCopies, int availableCopies) {
+    public Book(int id,
+                String title,
+                int authorId,
+                int sectionId,
+                String publicationYear,
+                int totalCopies,
+                int availableCopies) {
         this.id = id;
         this.title = title;
         this.authorId = authorId;
@@ -20,7 +26,6 @@ public class Book {
         this.availableCopies = availableCopies;
         this.publicationYear = publicationYear;
     }
-
 
 
     public int getId() {

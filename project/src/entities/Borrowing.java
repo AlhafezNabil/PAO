@@ -17,6 +17,15 @@ public class Borrowing {
         this.returnedDate = returnedDate;
     }
 
+    public Borrowing(int id, int bookId, int readerId, String borrowedDate, String dueDate) {
+        this.id = id;
+        this.bookId = bookId;
+        this.readerId = readerId;
+        this.borrowedDate = borrowedDate;
+        this.dueDate = dueDate;
+        this.returnedDate = null;
+    }
+
     public int getId() {
         return id;
     }

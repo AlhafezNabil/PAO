@@ -1,18 +1,40 @@
 package app;
 
+import core.AppResult;
 import db.DBManager;
 import entities.*;
+import services.author.IAuthor;
+import services.author.ImplAuthor;
+import services.book.IBook;
+import services.book.ImplBook;
+import services.librarian.ILibrarian;
+import services.librarian.ImplLibrarian;
+import services.library.ILibrary;
+import services.library.ImplLibrary;
+import services.reader.IReader;
+import services.reader.ImplReader;
+import services.sections.ISection;
+import services.sections.ImplSection;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class MenuManager {
 
-    private final DBManager dbManager;
+    //    private final DBManager dbManager;
     private final Scanner scanner;
+    private final IAuthor authorService = ImplAuthor.getInstance();
+    private final IBook bookService = ImplBook.getInstance();
+    private final ILibrarian librarianService = ImplLibrarian.getInstance();
+    private final ILibrary libraryService = ImplLibrary.getInstance();
+    private final IReader readerService = ImplReader.getInstance();
+
+    private final ISection sectionService = ImplSection.getInstance();
+
 
     public MenuManager() {
-        dbManager = DBManager.getInstance();
+//        dbManager = DBManager.getInstance();
         scanner = new Scanner(System.in);
     }
 
@@ -80,7 +102,7 @@ public class MenuManager {
         System.out.print("Enter library phone number: ");
         String phoneNumber = scanner.nextLine();
         Library library = new Library(id, name, address, phoneNumber);
-        dbManager.addLibrary(library);
+        libraryService.createLibrary(library);
     }
 
     private void addSection() {
@@ -91,7 +113,8 @@ public class MenuManager {
         String name = scanner.nextLine();
         System.out.print("Enter library ID for the section: ");
         int libraryId = scanner.nextInt();
-        dbManager.addSection(id, name, libraryId);
+        Section section = new Section(id, name, libraryId);
+        sectionService.createSection(section);
     }
 
     private void addAuthor() {
@@ -102,7 +125,8 @@ public class MenuManager {
         String name = scanner.nextLine();
         System.out.print("Enter author birth date (yyyy-MM-dd): ");
         String birthDate = scanner.nextLine();
-        dbManager.addAuthor(id, name, birthDate);
+        Author author = new Author(id, name, birthDate);
+        authorService.createAuthor(author);
     }
 
     private void addBook() {
@@ -116,8 +140,14 @@ public class MenuManager {
         System.out.print("Enter book section ID: ");
         int sectionId = scanner.nextInt();
         System.out.print("Enter publication year: ");
-        int publicationYear = scanner.nextInt();
-        dbManager.addBook(id, title, authorId, sectionId, publicationYear);
+        String publicationYear = scanner.nextLine();
+        System.out.print("Enter total Copies: ");
+        int totalCopies = scanner.nextInt();
+        System.out.print("Enter available Copies: ");
+        int availableCopies = scanner.nextInt();
+//        (int id, String title, int authorId, int sectionId, String publicationYear, int totalCopies, int availableCopies)
+        Book book = new Book(id, title, authorId, sectionId, publicationYear, totalCopies, availableCopies);
+        bookService.createBook(book);
     }
 
     private void addReader() {
@@ -130,7 +160,13 @@ public class MenuManager {
         String email = scanner.nextLine();
         System.out.print("Enter reader phone number: ");
         String phoneNumber = scanner.nextLine();
-        dbManager.addReader(id, name, email, phoneNumber);
+        System.out.print("Enter reader location: ");
+        String location = scanner.nextLine();
+        System.out.print("Enter reader created Date: ");
+        String createdDate = scanner.nextLine();
+        Reader reader = new Reader(id, name, email, phoneNumber, location, createdDate);
+        readerService.createReader(reader);
+
     }
 
     private void addLibrarian() {
@@ -145,117 +181,184 @@ public class MenuManager {
         String phoneNumber = scanner.nextLine();
         System.out.print("Enter library ID for the librarian: ");
         int libraryId = scanner.nextInt();
-        dbManager.addLibrarian(id, name, email, phoneNumber, libraryId);
+        Librarian librarian = new Librarian(id, name, email, phoneNumber, libraryId);
+        librarianService.createLibrarian(librarian);
     }
 
     private void borrowBook() {
         System.out.print("Enter borrowing ID: ");
         int id = scanner.nextInt();
-        System.out.print("Enter reader ID: ");
-        int readerId = scanner.nextInt();
+
         System.out.print("Enter book ID: ");
         int bookId = scanner.nextInt();
-        scanner.nextLine();
+
+        System.out.print("Enter reader ID: ");
+        int readerId = scanner.nextInt();
+
         System.out.print("Enter borrowing date (yyyy-MM-dd): ");
         String borrowingDate = scanner.nextLine();
+
         System.out.print("Enter due date (yyyy-MM-dd): ");
         String dueDate = scanner.nextLine();
-        dbManager.borrowBook(id, readerId, bookId, borrowingDate, dueDate);
+
+        Borrowing borrowing = new Borrowing(id, bookId, readerId, borrowingDate, dueDate);
+        bookService.borrowBook(borrowing);
     }
 
     private void returnBook() {
         System.out.print("Enter borrowing ID: ");
         int id = scanner.nextInt();
-        dbManager.returnBook(id);
+        bookService.returnBorrowing(id);
     }
 
     private void listSections() {
-        List<Section> sections = dbManager.getAllSections();
-        System.out.println("All Sections:");
-        for (Section section : sections) {
-            System.out.println(section.getId() + "\t" + section.getName() + "\t" + section.getLibraryId());
+        System.out.println("Do you want them sorted alphabetically default yes, your answer [Y/n]:");
+        String answer = scanner.nextLine();
+        boolean isAlphabetSorted = !answer.toLowerCase().startsWith("n");
+        Sorting sorting = new Sorting(null, isAlphabetSorted);
+        AppResult<List<Section>> result = sectionService.getSectionsList(sorting);
+        if (result.hasDataOnly()) {
+            System.out.println("All Sections:");
+
+            for (Section section : result.getData()) {
+                System.out.println(section.getId() + "\t" + section.getName() + "\t" + section.getLibraryId());
+            }
+        } else {
+            System.out.println("Error happened. " + result.getError().getMessage());
         }
     }
 
     private void listAuthors() {
-        List<Author> authors = dbManager.getAllAuthors();
-        System.out.println("All Authors:");
-        for (Author author : authors) {
-            System.out.println(author.getId() + "\t" + author.getName() + "\t" + author.getBirthDate());
+        System.out.println("Do you want them sorted birth date of the author default yes, your answer [Y/n]:");
+        String answer = scanner.nextLine();
+        boolean isDateSorted = !answer.toLowerCase().startsWith("n");
+        Sorting sorting = new Sorting(isDateSorted, false);
+        AppResult<List<Author>> result = authorService.getAuthorsList(sorting);
+        if (result.hasDataOnly()) {
+            System.out.println("All Authors:");
+            for (Author author : result.getData()) {
+                System.out.println(author.getId() + "\t" + author.getName() + "\t" + author.getBirthDate());
+            }
+        } else {
+            System.out.println("Error happened. " + result.getError().getMessage());
         }
     }
 
     private void listBooks() {
-        List<Book> books = dbManager.getAllBooks();
-        System.out.println("All Books:");
-        for (Book book : books) {
-            System.out.println(book.getId() + "\t" + book.getTitle() + "\t" + book.getAuthorId() + "\t" + book.getSectionId() + "\t" + book.getAvailableCopies());
+
+        System.out.println("Do you want them sorted alphabetically default yes, your answer [Y/n]:");
+        String answer = scanner.nextLine();
+
+        boolean isAlphabetSorted = !answer.toLowerCase().startsWith("n");
+        Sorting sorting = new Sorting(null, isAlphabetSorted);
+        AppResult<List<Book>> result = bookService.getBooksList(sorting);
+        if (result.hasDataOnly()) {
+            System.out.println("All Books:");
+            for (Book book : result.getData()) {
+                System.out.println(book.getId() + "\t" + book.getTitle() + "\t" + book.getAuthorId() + "\t" + book.getSectionId() + "\t" + book.getAvailableCopies());
+            }
+        } else {
+            System.out.println("Error happened. " + result.getError().getMessage());
         }
     }
 
     private void listReaders() {
-        List<Reader> readers = dbManager.getAllReaders();
-        System.out.println("All Readers:");
-        for (Reader reader : readers) {
-            System.out.println(reader.getId() + "\t" + reader.getName() + "\t" + reader.getEmail() + "\t" + reader.getPhoneNumber());
+        AppResult<List<Reader>> result = readerService.getReadersList(new Sorting(null, null));
+        if (result.hasDataOnly()) {
+            System.out.println("All Readers:");
+            for (Reader reader : result.getData()) {
+                System.out.println(reader.getId() + "\t" + reader.getName() + "\t" + reader.getEmail() + "\t" + reader.getPhoneNumber());
+            }
+        } else {
+            System.out.println("Error happened. " + result.getError().getMessage());
         }
     }
 
     private void listLibrarians() {
-        List<Librarian> librarians = dbManager.getAllLibrarians();
-        System.out.println("All Librarians:");
-        for (Librarian librarian : librarians) {
-            System.out.println(librarian.getId() + "\t" + librarian.getName() + "\t" + librarian.getEmail() + "\t" + librarian.getPhoneNumber() + "\t" + librarian.getLibraryId());
+        System.out.println("Do you want them sorted alphabetically default yes, your answer [Y/n]:");
+        String answer = scanner.nextLine();
+
+        boolean isAlphabetSorted = !answer.toLowerCase().startsWith("n");
+        Sorting sorting = new Sorting(null, isAlphabetSorted);
+        AppResult<List<Librarian>> result = librarianService.getLibrariesList(sorting);
+        if (result.hasDataOnly()) {
+            System.out.println("All Librarians:");
+            for (Librarian librarian : result.getData()) {
+                System.out.println(librarian.getId() + "\t" + librarian.getName() + "\t" + librarian.getEmail() + "\t" + librarian.getPhoneNumber() + "\t" + librarian.getLibraryId());
+            }
+        } else {
+            System.out.println("Error happened. " + result.getError().getMessage());
         }
     }
 
     private void findBookByTitle() {
         System.out.print("Enter book title: ");
         String title = scanner.nextLine();
-        List<Book> books = dbManager.getBooksByTitle(title);
-        if (books.isEmpty()) {
-            System.out.println("No books found with title \"" + title + "\"");
-        } else {
-            System.out.println("Books with title \"" + title + "\":");
-            for (Book book : books) {
-                System.out.println(book.getId() + "\t" + book.getTitle() + "\t" + book.getAuthorId() + "\t" + book.getSectionId() + "\t" + book.getPublicationYear());
+        AppResult<List<Book>> result = bookService.getBooksByTitle(title);
+        if (result.hasDataOnly()) {
+            if (result.getData().isEmpty()) {
+                System.out.println("No books found with title \"" + title + "\"");
+            } else {
+                System.out.println("Books with title \"" + title + "\":");
+                for (Book book : result.getData()) {
+                    System.out.println(book.getId() + "\t" + book.getTitle() + "\t" + book.getAuthorId() + "\t" + book.getSectionId() + "\t" + book.getPublicationYear());
+                }
             }
+        } else {
+            System.out.println("Error happened. " + result.getError().getMessage());
         }
     }
 
     private void findBooksByAuthor() {
         System.out.print("Enter author name: ");
         String authorName = scanner.nextLine();
-        List<Book> books = dbManager.getBooksByAuthor(authorName);
-        if (books.isEmpty()) {
-            System.out.println("No books found by author \"" + authorName + "\"");
-        } else {
-            System.out.println("Books by author \"" + authorName + "\":");
-            for (Book book : books) {
-                System.out.println(book.getId() + "\t" + book.getTitle() + "\t" + book.getAuthorId() + "\t" + book.getSectionId() + "\t" + book.getPublicationYear());
+        AppResult<List<Book>> result = bookService.getBooksByAuthor(authorName);
+        if (result.hasDataOnly()) {
+            if (result.getData().isEmpty()) {
+                System.out.println("No books found by author \"" + authorName + "\"");
+            } else {
+                System.out.println("Books by author \"" + authorName + "\":");
+                for (Book book : result.getData()) {
+                    System.out.println(book.getId() + "\t" + book.getTitle() + "\t" + book.getAuthorId() + "\t" + book.getSectionId() + "\t" + book.getPublicationYear());
+                }
             }
+        } else {
+            System.out.println("Error happened. " + result.getError().getMessage());
         }
     }
 
     private void getAllLibraries() {
-        List<Library> libraries = dbManager.getAllLibraries();
-        System.out.println("All Libraries:");
-        for (Library library : libraries) {
-            System.out.println(library.getId() + "\t" + library.getName() + "\t" + library.getAddress() + "\t" + library.getPhoneNumber());
+        System.out.println("Do you want them sorted alphabetically default yes, your answer [Y/n]:");
+        String answer = scanner.nextLine();
+
+        boolean isAlphabetSorted = !answer.toLowerCase().startsWith("n");
+        Sorting sorting = new Sorting(null, isAlphabetSorted);
+        AppResult<List<Library>> result = libraryService.getLibrariesList(sorting);
+        if (result.hasDataOnly()) {
+            System.out.println("All Libraries:");
+            for (Library library : result.getData()) {
+                System.out.println(library.getId() + "\t" + library.getName() + "\t" + library.getAddress() + "\t" + library.getPhoneNumber());
+            }
+        } else {
+            System.out.println("Error happened. " + result.getError().getMessage());
         }
     }
 
     private void getAllSectionsInLibrary() {
         System.out.print("Enter library ID: ");
         int libraryId = scanner.nextInt();
-        List<Section> sections = dbManager.getAllSectionsInLibrary(libraryId);
-        if (sections.isEmpty()) {
-            System.out.println("No sections found for library with ID " + libraryId);
-        } else {
-            System.out.println("All sections in library with ID " + libraryId + ":");
-            for (Section section : sections) {
-                System.out.println(section.getId() + "\t" + section.getName());
+        AppResult<List<Section>> result = sectionService.findSectionInLibrary(libraryId);
+        if (result.hasDataOnly()) {
+            if (result.getData().isEmpty()) {
+                System.out.println("No sections found for library with ID " + libraryId);
+            } else {
+                System.out.println("All sections in library with ID " + libraryId + ":");
+                for (Section section : result.getData()) {
+                    System.out.println(section.getId() + "\t" + section.getName());
+                }
             }
+        } else {
+            System.out.println("Error happened. " + result.getError().getMessage());
         }
     }
 }
