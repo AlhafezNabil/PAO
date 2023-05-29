@@ -9,13 +9,13 @@ public class Book {
     private int sectionId;
     private int totalCopies;
     private int availableCopies;
-    private String publicationYear;
+    private String publicationDate;
 
     public Book(int id,
                 String title,
                 int authorId,
                 int sectionId,
-                String publicationYear,
+                String publicationDate,
                 int totalCopies,
                 int availableCopies) {
         this.id = id;
@@ -24,7 +24,7 @@ public class Book {
         this.sectionId = sectionId;
         this.totalCopies = totalCopies;
         this.availableCopies = availableCopies;
-        this.publicationYear = publicationYear;
+        this.publicationDate = publicationDate;
     }
 
 
@@ -76,11 +76,11 @@ public class Book {
         this.availableCopies = availableCopies;
     }
 
-    public String getPublicationYear() {
-        return publicationYear;
+    public String getpublicationDate() {
+        return publicationDate;
     }
 
-    public void setPublicationYear(String publicationYear) {
-        this.publicationYear = publicationYear;
+    public void setpublicationDate(String publicationDate) {
+        this.publicationDate = publicationDate;
     }
 }

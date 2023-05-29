@@ -1,8 +1,10 @@
 import app.MenuManager;
+import app.MenuUI;
 
 public class Main {
     public static void main(String[] args) {
-        MenuManager menuManager = new MenuManager();
+        MenuUI menuUI = new MenuUI();
+        MenuManager menuManager = new MenuManager(menuUI);
         menuManager.run();
     }
 }

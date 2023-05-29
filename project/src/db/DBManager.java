@@ -17,7 +17,7 @@ public class DBManager {
     String sqlSection = "INSERT INTO sections (id, name, library_id) VALUES (?, ?, ?)";
     String sqlAuthor = "INSERT INTO authors (id, name, birth_date) VALUES (?, ?, ?)";
     String sqlReader = "INSERT INTO readers (id, name, email, phone_number) VALUES (?, ?, ?, ?)";
-    String sqlBook = "INSERT INTO books (id, title, author_id, section_id, publication_year, total_copies, available_copies) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    String sqlBook = "INSERT INTO books (id, title, author_id, section_id, publication_date, total_copies, available_copies) VALUES (?, ?, ?, ?, ?, ?, ?)";
     String sqlBorrowings = "INSERT INTO borrowings (id, reader_id, book_id, borrowing_date, due_date, returned_rate) VALUES (?, ?, ?, ?, ?, ?)";
 
     private static volatile DBManager instance;
@@ -50,7 +50,7 @@ public class DBManager {
         try {
             Class.forName(MYSQL_JDBC_DRIVER);
             connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD);
-            System.out.println("MySQL connection available " + connection.getSchema());
+//            System.out.println("MySQL connection available " + connection.getSchema());
         } catch (ClassNotFoundException e) {
             System.out.println("MySQL Exception driver not available: " + e.getMessage());
         } catch (Exception e) {
@@ -531,7 +531,12 @@ public class DBManager {
             statement.setString(2, book.getTitle());
             statement.setInt(3, book.getAuthorId());
             statement.setInt(4, book.getSectionId());
-            statement.setDate(5, Date.valueOf(book.getPublicationYear()));
+            System.out.println("starts book.getpublicationDate()");
+            System.out.println(book.getpublicationDate());
+            System.out.println(Date.valueOf(book.getpublicationDate()));
+            System.out.println("ends   book.getpublicationDate()");
+
+            statement.setString(5, book.getpublicationDate());
             statement.setInt(6, book.getTotalCopies());
             statement.setInt(7, book.getAvailableCopies());
 
@@ -554,11 +559,11 @@ public class DBManager {
             String title = resultSet.getString("title");
             int authorId = resultSet.getInt("author_id");
             int sectionId = resultSet.getInt("section_id");
-            LocalDate publicationYear = resultSet.getDate("publication_year").toLocalDate();
+            LocalDate publicationDate = resultSet.getDate("publication_date").toLocalDate();
             int totalCopies = resultSet.getInt("total_copies");
             int availableCopies = resultSet.getInt("available_copies");
 
-            Book book = new Book(id, title, authorId, sectionId, publicationYear.toString(), totalCopies, availableCopies);
+            Book book = new Book(id, title, authorId, sectionId, publicationDate.toString(), totalCopies, availableCopies);
             return new AppResult<>(book);
         } catch (Exception exception) {
             return mapErrorToBaseError(exception);
@@ -576,11 +581,11 @@ public class DBManager {
                 String title = resultSet.getString("title");
                 int authorId = resultSet.getInt("author_id");
                 int sectionId = resultSet.getInt("section_id");
-                LocalDate publicationYear = resultSet.getDate("publication_year").toLocalDate();
+                LocalDate publicationDate = resultSet.getDate("publication_date").toLocalDate();
                 int totalCopies = resultSet.getInt("total_copies");
                 int availableCopies = resultSet.getInt("available_copies");
 
-                Book book = new Book(id, title, authorId, sectionId, publicationYear.toString(), totalCopies, availableCopies);
+                Book book = new Book(id, title, authorId, sectionId, publicationDate.toString(), totalCopies, availableCopies);
 
                 books.add(book);
             }
@@ -596,7 +601,7 @@ public class DBManager {
             statement.setString(2, book.getTitle());
             statement.setInt(3, book.getAuthorId());
             statement.setInt(4, book.getSectionId());
-            statement.setDate(5, Date.valueOf(book.getPublicationYear()));
+            statement.setDate(5, Date.valueOf(book.getpublicationDate()));
             statement.setInt(6, book.getTotalCopies());
             statement.setInt(7, book.getAvailableCopies());
 
@@ -666,11 +671,11 @@ public class DBManager {
                 String bookTitle = resultSet.getString("title");
                 int authorId = resultSet.getInt("author_id");
                 int sectionId = resultSet.getInt("section_id");
-                LocalDate publicationYear = resultSet.getDate("publication_year").toLocalDate();
+                LocalDate publicationDate = resultSet.getDate("publication_date").toLocalDate();
                 int totalCopies = resultSet.getInt("total_copies");
                 int availableCopies = resultSet.getInt("available_copies");
 
-                Book book = new Book(id, bookTitle, authorId, sectionId, publicationYear.toString(), totalCopies, availableCopies);
+                Book book = new Book(id, bookTitle, authorId, sectionId, publicationDate.toString(), totalCopies, availableCopies);
 
                 books.add(book);
             }
@@ -692,11 +697,11 @@ public class DBManager {
                 String bookTitle = resultSet.getString("title");
                 int authorId = resultSet.getInt("author_id");
                 int sectionId = resultSet.getInt("section_id");
-                LocalDate publicationYear = resultSet.getDate("publication_year").toLocalDate();
+                LocalDate publicationDate = resultSet.getDate("publication_date").toLocalDate();
                 int totalCopies = resultSet.getInt("total_copies");
                 int availableCopies = resultSet.getInt("available_copies");
 
-                Book book = new Book(id, bookTitle, authorId, sectionId, publicationYear.toString(), totalCopies, availableCopies);
+                Book book = new Book(id, bookTitle, authorId, sectionId, publicationDate.toString(), totalCopies, availableCopies);
 
 
                 books.add(book);
