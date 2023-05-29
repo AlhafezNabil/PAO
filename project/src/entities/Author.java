@@ -17,6 +17,14 @@ public class Author extends Person {
     public void setBirthDate(String birthDate) {
         this.birthDate = birthDate;
     }
-
+    @Override
+    public String toString() {
+        return "Author{" +
+                "id=" + getId() +
+                ", name='" + getName() + '\'' +
+                ", email='" + getEmail() + '\'' +
+                ", phoneNumber='" + getPhoneNumber() + '\'' +
+                '}';
+    }
 
 }

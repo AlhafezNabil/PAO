@@ -39,7 +39,7 @@ public class SectionRepository implements GenericRepository<Section> {
 
     @Override
     public AppResult<List<Section>> findAll(Sorting options) {
-        return db.getAllSectionsInLibrary();
+        return db.getAllSectionsInLibrary(options);
     }
 
     @Override

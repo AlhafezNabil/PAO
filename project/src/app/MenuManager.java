@@ -1,7 +1,6 @@
 package app;
 
 import core.AppResult;
-import db.DBManager;
 import entities.*;
 import services.author.IAuthor;
 import services.author.ImplAuthor;
@@ -17,13 +16,12 @@ import services.reader.ImplReader;
 import services.sections.ISection;
 import services.sections.ImplSection;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
 
 public class MenuManager {
-
-    //    private final DBManager dbManager;
 
     private final IAuthor authorService = ImplAuthor.getInstance();
     private final IBook bookService = ImplBook.getInstance();
@@ -45,296 +43,153 @@ public class MenuManager {
             menuUI.printMenu();
             option = menuUI.getUserInputAsInt();
             switch (option) {
-                case 1 -> addLibrary();
-                case 2 -> addSection();
-                case 3 -> addAuthor();
-                case 4 -> addBook();
-                case 5 -> addReader();
-                case 6 -> addLibrarian();
-                case 7 -> borrowBook();
-                case 8 -> returnBook();
-                case 9 -> listSections();
-                case 10 -> listAuthors();
-                case 11 -> listBooks();
-                case 12 -> listReaders();
-                case 13 -> listLibrarians();
-                case 14 -> findBookByTitle();
-                case 15 -> findBooksByAuthor();
-                case 16 -> getAllLibraries();
-                case 17 -> getAllSectionsInLibrary();
+                case 1 -> libraryOptions();
+                case 2 -> sectionOptions();
+                case 3 -> authorOptions();
+                case 4 -> bookOptions();
+                case 5 -> readerOptions();
+                case 6 -> librarianOptions();
                 case 0 -> System.out.println("Exiting...");
                 default -> System.out.println("Invalid option. Please try again.");
             }
-
+            menuUI.getUserInputAsNone("Press any key to clear...");
+            MenuUI.clearConsole();
         } while (option != 0);
     }
 
+    private void libraryOptions() {
+        int option;
+        menuUI.printLibraryMenu();
+        option = menuUI.getUserInputAsInt();
+        switch (option) {
+            case 1 -> addLibrary();
+            case 2 -> getAllLibraries();
+            case 3 -> getLibraryById();
+            case 4 -> updateLibrary();
+            case 5 -> deleteLibrary();
+            case 0 -> System.out.println("Return...");
+            default -> System.out.println("Invalid option. Please try again.");
+
+        }
+
+    }
+
     private void addLibrary() {
-        int id = menuUI.getUserInputAsInt("Enter library ID: ");
-        String name = menuUI.getUserInputAsString("Enter library name: ");
-        String address = menuUI.getUserInputAsString("Enter library address: ");
-        String phoneNumber = menuUI.getUserInputAsString("Enter library phone number: ");
-        Library library = new Library(id, name, address, phoneNumber);
+        Library library = menuUI.readLibrary();
         var result = libraryService.createLibrary(library);
         if (result.hasDataOnly()) {
             AuditService.writeToAuditLog("Add a new library");
         }
     }
 
+    private void getAllLibraries() {
+
+        Sorting sorting = menuUI.getSortAlphabetically();
+        AppResult<List<Library>> result = libraryService.getLibrariesList(sorting);
+        menuUI.printLibraryResults(result);
+
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Get all libraries");
+        }
+    }
+
+    private void getLibraryById() {
+        int id = menuUI.getUserInputAsInt("Enter library ID: ");
+        var result = libraryService.getLibrary(id);
+        menuUI.printLibraryResult(result);
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Gets a library");
+        }
+    }
+
+    private void updateLibrary() {
+        int id = menuUI.getUserInputAsInt("Enter library ID: ");
+        Library library = menuUI.readLibrary();
+        library.setId(id);
+        var result = libraryService.updateLibrary(library);
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Update a library");
+        } else menuUI.printFailure();
+
+    }
+
+    private void deleteLibrary() {
+        int id = menuUI.getUserInputAsInt("Enter library ID: ");
+        var result = libraryService.deleteLibrary(id);
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Deletes a library");
+        } else menuUI.printFailure();
+
+    }
+
+    private void sectionOptions() {
+        int option;
+        menuUI.printSectionMenu();
+        option = menuUI.getUserInputAsInt();
+        switch (option) {
+            case 1 -> addSection();
+            case 2 -> getAllSections();
+            case 3 -> getSectionById();
+            case 4 -> updateSection();
+            case 5 -> deleteSection();
+            case 6 -> getAllSectionsInLibrary();
+            case 0 -> System.out.println("Return...");
+            default -> System.out.println("Invalid option. Please try again.");
+
+        }
+
+    }
+
+
     private void addSection() {
-        int id = menuUI.getUserInputAsInt("Enter section ID: ");
-        String name = menuUI.getUserInputAsString("Enter section name: ");
-        int libraryId = menuUI.getUserInputAsInt("Enter library ID for the section: ");
-        Section section = new Section(id, name, libraryId);
+        Section section = menuUI.readSection();
         var result = sectionService.createSection(section);
         if (result.hasDataOnly()) {
             AuditService.writeToAuditLog("Add a new section");
         }
     }
 
-    private void addAuthor() {
-        int id = menuUI.getUserInputAsInt("Enter author ID: ");
-        String name = menuUI.getUserInputAsString("Enter author name: ");
-        String birthDate = menuUI.getUserInputAsString("Enter author birth date (yyyy-MM-dd): ");
-        Author author = new Author(id, name, birthDate);
+    private void getAllSections() {
 
-        var result = authorService.createAuthor(author);
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Add a new author");
-        }
-    }
+        Sorting sorting = menuUI.getSortAlphabetically();
+        var result = sectionService.getSectionsList(sorting);
+        menuUI.printSectionResults(result);
 
-    private void addBook() {
-        int id = menuUI.getUserInputAsInt("Enter book ID: ");
-        String title = menuUI.getUserInputAsString("Enter book title: ");
-        int authorId = menuUI.getUserInputAsInt("Enter book author ID: ");
-        int sectionId = menuUI.getUserInputAsInt("Enter book section ID: ");
-        String publicationDate = menuUI.getUserInputAsString("Enter publication date: ");
-        int totalCopies = menuUI.getUserInputAsInt("Enter total copies: ");
-        int availableCopies = menuUI.getUserInputAsInt("Enter available copies: ");
-
-        Book book = new Book(id, title, authorId, sectionId, publicationDate, totalCopies, availableCopies);
-
-        var result = bookService.createBook(book);
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Add a new book");
-        }
-    }
-
-    private void addReader() {
-        int id = menuUI.getUserInputAsInt("Enter reader ID: ");
-        String name = menuUI.getUserInputAsString("Enter reader name: ");
-        String email = menuUI.getUserInputAsString("Enter reader email: ");
-        String phoneNumber = menuUI.getUserInputAsString("Enter reader phone number: ");
-        String location = menuUI.getUserInputAsString("Enter reader location: ");
-        String createdDate = menuUI.getUserInputAsString("Enter reader created date: ");
-        Reader reader = new Reader(id, name, email, phoneNumber, location, createdDate);
-
-        var result = readerService.createReader(reader);
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Add a new reader");
-        }
-    }
-
-    private void addLibrarian() {
-        int id = menuUI.getUserInputAsInt("Enter librarian ID: ");
-        String name = menuUI.getUserInputAsString("Enter librarian name: ");
-        String email = menuUI.getUserInputAsString("Enter librarian email: ");
-        String phoneNumber = menuUI.getUserInputAsString("Enter librarian phone number: ");
-        int libraryId = menuUI.getUserInputAsInt("Enter library ID for the librarian: ");
-        Librarian librarian = new Librarian(id, name, email, phoneNumber, libraryId);
-        var result = librarianService.createLibrarian(librarian);
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Add a new librarian");
-        }
-    }
-
-    private void borrowBook() {
-        int id = menuUI.getUserInputAsInt("Enter borrowing ID: ");
-        int bookId = menuUI.getUserInputAsInt("Enter book ID: ");
-        int readerId = menuUI.getUserInputAsInt("Enter reader ID: ");
-        String borrowingDate = menuUI.getUserInputAsString("Enter borrowing date (yyyy-MM-dd): ");
-        String dueDate = menuUI.getUserInputAsString("Enter due date (yyyy-MM-dd): ");
-        Borrowing borrowing = new Borrowing(id, bookId, readerId, borrowingDate, dueDate);
-        var result = bookService.borrowBook(borrowing);
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Borrowing a new book");
-        }
-    }
-
-    private void returnBook() {
-        int id = menuUI.getUserInputAsInt("Enter borrowing ID: ");
-        var result = bookService.returnBorrowing(id);
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Returning a book");
-        }
-    }
-
-    private void listSections() {
-        Sorting sorting = new Sorting(null, true);
-        AppResult<List<Section>> result = sectionService.getSectionsList(sorting);
-        if (result.hasDataOnly()) {
-            List<Section> sections = result.getData();
-            if (sections.isEmpty()) {
-                System.out.println("No sections found.");
-            } else {
-                System.out.println("All Sections:");
-                for (Section section : sections) {
-                    System.out.println(section.getId() + "\t" + section.getName() + "\t" + section.getLibraryId());
-                }
-            }
-        } else {
-            System.out.println("Error occurred: " + result.getError().getMessage());
-        }
         if (result.hasDataOnly()) {
             AuditService.writeToAuditLog("Get all sections");
         }
     }
 
-    private void listAuthors() {
-        Sorting sorting = new Sorting(true, false);
-        AppResult<List<Author>> result = authorService.getAuthorsList(sorting);
+    private void getSectionById() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var result = sectionService.getSection(id);
+        menuUI.printSectionResult(result);
         if (result.hasDataOnly()) {
-            List<Author> authors = result.getData();
-            if (authors.isEmpty()) {
-                System.out.println("No authors found.");
-            } else {
-                System.out.println("All Authors:");
-                for (Author author : authors) {
-                    System.out.println(author.getId() + "\t" + author.getName() + "\t" + author.getBirthDate());
-                }
-            }
-        } else {
-            System.out.println("Error occurred: " + result.getError().getMessage());
-        }
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Get all authors");
+            AuditService.writeToAuditLog("Gets a section");
         }
     }
 
-    private void listBooks() {
-        Sorting sorting = new Sorting(true, false);
-        AppResult<List<Book>> result = bookService.getBooksList(sorting);
+    private void updateSection() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var item = menuUI.readSection();
+        item.setId(id);
+        var result = sectionService.updateSection(item);
         if (result.hasDataOnly()) {
-            List<Book> books = result.getData();
-            if (books.isEmpty()) {
-                System.out.println("No books found.");
-            } else {
-                System.out.println("All Books:");
-                for (Book book : books) {
-                    System.out.println(book.getId() + "\t" + book.getTitle() + "\t" + book.getAuthorId() + "\t" + book.getSectionId() + "\t" + book.getAvailableCopies());
-                }
-            }
-        } else {
-            System.out.println("Error occurred: " + result.getError().getMessage());
-        }
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Get all books");
-        }
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Update a section");
+        } else menuUI.printFailure();
+
     }
 
-    private void listReaders() {
-        AppResult<List<Reader>> result = readerService.getReadersList(new Sorting(null, null));
+    private void deleteSection() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var result = sectionService.deleteSection(id);
         if (result.hasDataOnly()) {
-            List<Reader> readers = result.getData();
-            if (readers.isEmpty()) {
-                System.out.println("No readers found.");
-            } else {
-                System.out.println("All Readers:");
-                for (Reader reader : readers) {
-                    System.out.println(reader.getId() + "\t" + reader.getName() + "\t" + reader.getEmail() + "\t" + reader.getPhoneNumber());
-                }
-            }
-        } else {
-            System.out.println("Error occurred: " + result.getError().getMessage());
-        }
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Get all readers");
-        }
-    }
-
-    private void listLibrarians() {
-        Sorting sorting = new Sorting(true, false);
-        AppResult<List<Librarian>> result = librarianService.getLibrariesList(sorting);
-        if (result.hasDataOnly()) {
-            List<Librarian> librarians = result.getData();
-            if (librarians.isEmpty()) {
-                System.out.println("No librarians found.");
-            } else {
-                System.out.println("All Librarians:");
-                for (Librarian librarian : librarians) {
-                    System.out.println(librarian.getId() + "\t" + librarian.getName() + "\t" + librarian.getEmail() + "\t" + librarian.getPhoneNumber() + "\t" + librarian.getLibraryId());
-                }
-            }
-        } else {
-            System.out.println("Error occurred: " + result.getError().getMessage());
-        }
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Get all librarians");
-        }
-    }
-
-    private void findBookByTitle() {
-        String title = menuUI.getUserInputAsString("Enter book title: ");
-        AppResult<List<Book>> result = bookService.getBooksByTitle(title);
-        if (result.hasDataOnly()) {
-            List<Book> books = result.getData();
-            if (books.isEmpty()) {
-                System.out.println("No books found with title \"" + title + "\"");
-            } else {
-                System.out.println("Books with title \"" + title + "\":");
-                for (Book book : books) {
-                    System.out.println(book.getId() + "\t" + book.getTitle() + "\t" + book.getAuthorId() + "\t" + book.getSectionId() + "\t" + book.getpublicationDate());
-                }
-            }
-        } else {
-            System.out.println("Error occurred: " + result.getError().getMessage());
-        }
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Find a book by title");
-        }
-    }
-
-    private void findBooksByAuthor() {
-        String authorName = menuUI.getUserInputAsString("Enter author name: ");
-        AppResult<List<Book>> result = bookService.getBooksByAuthor(authorName);
-        if (result.hasDataOnly()) {
-            List<Book> books = result.getData();
-            if (books.isEmpty()) {
-                System.out.println("No books found by author \"" + authorName + "\"");
-            } else {
-                System.out.println("Books by author \"" + authorName + "\":");
-                for (Book book : books) {
-                    System.out.println(book.getId() + "\t" + book.getTitle() + "\t" + book.getAuthorId() + "\t" + book.getSectionId() + "\t" + book.getpublicationDate());
-                }
-            }
-        } else {
-            System.out.println("Error occurred: " + result.getError().getMessage());
-        }
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Find books by author");
-        }
-    }
-
-    private void getAllLibraries() {
-        Sorting sorting = new Sorting(true, false);
-        AppResult<List<Library>> result = libraryService.getLibrariesList(sorting);
-        if (result.hasDataOnly()) {
-            List<Library> libraries = result.getData();
-            if (libraries.isEmpty()) {
-                System.out.println("No libraries found.");
-            } else {
-                System.out.println("All Libraries:");
-                for (Library library : libraries) {
-                    System.out.println(library.getId() + "\t" + library.getName() + "\t" + library.getAddress() + "\t" + library.getPhoneNumber());
-                }
-            }
-        } else {
-            System.out.println("Error occurred: " + result.getError().getMessage());
-        }
-        if (result.hasDataOnly()) {
-            AuditService.writeToAuditLog("Get all libraries");
-        }
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Deletes a section");
+        } else menuUI.printFailure();
     }
 
     private void getAllSectionsInLibrary() {
@@ -356,5 +211,365 @@ public class MenuManager {
         if (result.hasDataOnly()) {
             AuditService.writeToAuditLog("Get all sections in a library");
         }
+    }
+
+    //    private void addAuthor() {
+//        int id = menuUI.getUserInputAsInt("Enter author ID: ");
+//        String name = menuUI.getUserInputAsString("Enter author name: ");
+//        String birthDate = menuUI.getUserInputAsString("Enter author birth date (yyyy-MM-dd): ");
+//        Author author = new Author(id, name, birthDate);
+//
+//        var result = authorService.createAuthor(author);
+//        if (result.hasDataOnly()) {
+//            AuditService.writeToAuditLog("Add a new author");
+//        }
+//    }
+    private void authorOptions() {
+        int option;
+        menuUI.printAuthorMenu();
+        option = menuUI.getUserInputAsInt();
+        switch (option) {
+            case 1 -> addAuthor();
+            case 2 -> getAllAuthors();
+            case 3 -> getAuthorById();
+            case 4 -> updateAuthor();
+            case 5 -> deleteAuthor();
+            case 0 -> System.out.println("Return...");
+            default -> System.out.println("Invalid option. Please try again.");
+
+        }
+
+    }
+
+
+    private void addAuthor() {
+        Author author = menuUI.readAuthor();
+        var result = authorService.createAuthor(author);
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Add a new author");
+        }
+    }
+
+    private void getAllAuthors() {
+
+        Sorting sorting = menuUI.getSortAlphabetically();
+        var result = authorService.getAuthorsList(sorting);
+        menuUI.printAuthorResults(result);
+
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Get all authors");
+        }
+    }
+
+    private void getAuthorById() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var result = authorService.getAuthor(id);
+        menuUI.printAuthorResult(result);
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Gets a author");
+        }
+    }
+
+    private void updateAuthor() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var item = menuUI.readAuthor();
+        item.setId(id);
+        var result = authorService.updateAuthor(item);
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Update a author");
+        } else menuUI.printFailure();
+
+    }
+
+    private void deleteAuthor() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var result = authorService.deleteAuthor(id);
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Deletes a author");
+        } else menuUI.printFailure();
+    }
+
+    private void readerOptions() {
+        int option;
+        menuUI.printReaderMenu();
+        option = menuUI.getUserInputAsInt();
+        switch (option) {
+            case 1 -> addReader();
+            case 2 -> getAllReaders();
+            case 3 -> getReaderById();
+            case 4 -> updateReader();
+            case 5 -> deleteReader();
+            case 0 -> System.out.println("Return...");
+            default -> System.out.println("Invalid option. Please try again.");
+        }
+    }
+
+    private void addReader() {
+        Reader reader = menuUI.readReader();
+        var result = readerService.createReader(reader);
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Add a new reader");
+        }
+    }
+
+    private void getAllReaders() {
+        Sorting sorting = menuUI.getSortAlphabetically();
+        var result = readerService.getReadersList(sorting);
+        menuUI.printReaderResults(result);
+
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Get all readers");
+        }
+    }
+
+    private void getReaderById() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var result = readerService.getReader(id);
+        menuUI.printReaderResult(result);
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Gets a reader");
+        }
+    }
+
+    private void updateReader() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var item = menuUI.readReader();
+        item.setId(id);
+        var result = readerService.updateReader(item);
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Update a reader");
+        } else menuUI.printFailure();
+    }
+
+    private void deleteReader() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var result = readerService.deleteReader(id);
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Deletes a reader");
+        } else menuUI.printFailure();
+    }
+
+    private void librarianOptions() {
+        int option;
+        menuUI.printLibrarianMenu();
+        option = menuUI.getUserInputAsInt();
+        switch (option) {
+            case 1 -> addLibrarian();
+            case 2 -> getAllLibrarians();
+            case 3 -> getLibrarianById();
+            case 4 -> updateLibrarian();
+            case 5 -> deleteLibrarian();
+            case 0 -> System.out.println("Return...");
+            default -> System.out.println("Invalid option. Please try again.");
+        }
+    }
+
+    private void addLibrarian() {
+        Librarian librarian = menuUI.readLibrarian();
+        var result = librarianService.createLibrarian(librarian);
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Add a new librarian");
+        }
+    }
+
+    private void getAllLibrarians() {
+        Sorting sorting = menuUI.getSortAlphabetically();
+        var result = librarianService.getLibrariesList(sorting);
+        menuUI.printLibrarianResults(result);
+
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Get all librarians");
+        }
+    }
+
+    private void getLibrarianById() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var result = librarianService.getLibrarian(id);
+        menuUI.printLibrarianResult(result);
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Gets a librarian");
+        }
+    }
+
+    private void updateLibrarian() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var item = menuUI.readLibrarian();
+        item.setId(id);
+        var result = librarianService.updateLibrarian(item);
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Update a librarian");
+        } else menuUI.printFailure();
+    }
+
+    private void deleteLibrarian() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var result = librarianService.deleteLibrarian(id);
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Deletes a librarian");
+        } else menuUI.printFailure();
+    }
+
+    private void bookOptions() {
+        int option;
+        menuUI.printBookMenu();
+        option = menuUI.getUserInputAsInt();
+        switch (option) {
+            case 1 -> addBook();
+            case 2 -> getAllBooks();
+            case 3 -> getBookById();
+            case 4 -> updateBook();
+            case 5 -> deleteBook();
+            case 6 -> findBooksByAuthor();
+            case 7 -> findBookByTitle();
+            case 8 -> borrowBook();
+            case 9 -> returnBook();
+            case 0 -> System.out.println("Return...");
+            default -> System.out.println("Invalid option. Please try again.");
+        }
+    }
+
+    private void addBook() {
+        Book book = menuUI.readBook();
+        var result = bookService.createBook(book);
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Add a new book");
+        }
+    }
+
+    private void getAllBooks() {
+        Sorting sorting = menuUI.getAlphabeticallyAndSortOnDate();
+        var result = bookService.getBooksList(sorting);
+        menuUI.printBookResults(result);
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Get all books");
+        }
+    }
+
+    private void getBookById() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var result = bookService.getBook(id);
+        menuUI.printBookResult(result);
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Gets a book");
+        }
+    }
+
+    private void updateBook() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var item = menuUI.readBook();
+        item.setId(id);
+        var result = bookService.updateBook(item);
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Update a book");
+        } else {
+            menuUI.printFailure();
+        }
+    }
+
+    private void deleteBook() {
+        int id = menuUI.getUserInputAsInt("Enter id: ");
+        var result = bookService.deleteBook(id);
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Deletes a book");
+        } else {
+            menuUI.printFailure();
+        }
+    }
+
+    private void findBooksByAuthor() {
+        String authorName = menuUI.getUserInputAsString("Enter author name: ");
+        AppResult<List<Book>> result = bookService.getBooksByAuthor(authorName);
+        if (result.hasDataOnly()) {
+            List<Book> books = result.getData();
+            if (books.isEmpty()) {
+                System.out.println("No books found by author \"" + authorName + "\"");
+            } else {
+                System.out.println("Books by author \"" + authorName + "\":");
+                for (Book book : books) {
+                    System.out.println(book.getId() + "\t" + book.getTitle() + "\t" + book.getAuthorId() + "\t" + book.getSectionId() + "\t" + book.getPublicationDate());
+                }
+            }
+        } else {
+            System.out.println("Error occurred: " + result.getError().getMessage());
+        }
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Find books by author");
+        }
+    }
+
+    private void findBookByTitle() {
+        String title = menuUI.getUserInputAsString("Enter book title: ");
+        AppResult<List<Book>> result = bookService.getBooksByTitle(title);
+        if (result.hasDataOnly()) {
+            List<Book> books = result.getData();
+            if (books.isEmpty()) {
+                System.out.println("No books found with title \"" + title + "\"");
+            } else {
+                System.out.println("Books with title \"" + title + "\":");
+                for (Book book : books) {
+                    System.out.println(book.getId() + "\t" + book.getTitle() + "\t" + book.getAuthorId() + "\t" + book.getSectionId() + "\t" + book.getPublicationDate());
+                }
+            }
+        } else {
+            System.out.println("Error occurred: " + result.getError().getMessage());
+        }
+        if (result.hasDataOnly()) {
+            AuditService.writeToAuditLog("Find a book by title");
+        }
+    }
+
+
+    private void borrowBook() {
+        int bookId = menuUI.getUserInputAsInt("Enter book ID: ");
+        int readerId = menuUI.getUserInputAsInt("Enter reader ID: ");
+
+        LocalDate borrowingDate = null;
+        LocalDate dueDate = null;
+        boolean isInputDateCorrect;
+        do {
+            try {
+                borrowingDate = LocalDate.parse(menuUI.getUserInputAsString("Enter borrowing date (yyyy-MM-dd): "), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                dueDate = LocalDate.parse(menuUI.getUserInputAsString("Enter due date (yyyy-MM-dd): "), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+                if (!dueDate.isAfter(borrowingDate)) {
+                    System.out.println("Due date must be after borrowing date. Please try again.");
+                    isInputDateCorrect = false;
+                } else
+                    isInputDateCorrect = true;
+
+
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid date format. Please try again.");
+                isInputDateCorrect = false;
+
+            }
+        } while (!isInputDateCorrect);
+
+
+        Borrowing borrowing = new Borrowing(bookId, readerId, borrowingDate.toString(), dueDate.toString());
+        var result = bookService.borrowBook(borrowing);
+
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Borrowing a new book");
+        } else menuUI.printFailure(result.getError());
+
+    }
+
+    private void returnBook() {
+        int id = menuUI.getUserInputAsInt("Enter borrowing ID: ");
+        var result = bookService.returnBorrowing(id);
+        if (result.hasDataOnly()) {
+            menuUI.printSuccess();
+            AuditService.writeToAuditLog("Returning a book");
+        } else menuUI.printFailure();
     }
 }

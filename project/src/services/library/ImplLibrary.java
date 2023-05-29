@@ -45,7 +45,7 @@ public class ImplLibrary implements ILibrary {
 
     @Override
     public AppResult<EmptyEntity> updateLibrary(Library entity) {
-        return null;
+        return repository.update(entity);
     }
 
     @Override

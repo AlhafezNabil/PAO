@@ -13,6 +13,12 @@ public class Library {
         this.phoneNumber = phoneNumber;
     }
 
+    public Library(String name, String address, String phoneNumber) {
+        this.name = name;
+        this.address = address;
+        this.phoneNumber = phoneNumber;
+    }
+
     public int getId() {
         return id;
     }
@@ -45,5 +51,15 @@ public class Library {
         this.phoneNumber = phoneNumber;
     }
 
- 
+    @Override
+    public String toString() {
+        return "Library{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", address='" + address + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                '}';
+    }
+
+
 }

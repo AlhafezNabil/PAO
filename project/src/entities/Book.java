@@ -76,11 +76,23 @@ public class Book {
         this.availableCopies = availableCopies;
     }
 
-    public String getpublicationDate() {
+    public String getPublicationDate() {
         return publicationDate;
     }
 
-    public void setpublicationDate(String publicationDate) {
+    public void setPublicationDate(String publicationDate) {
         this.publicationDate = publicationDate;
+    }
+    @Override
+    public String toString() {
+        return "Book{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", authorId=" + authorId +
+                ", sectionId=" + sectionId +
+                ", totalCopies=" + totalCopies +
+                ", availableCopies=" + availableCopies +
+                ", publicationDate='" + publicationDate + '\'' +
+                '}';
     }
 }

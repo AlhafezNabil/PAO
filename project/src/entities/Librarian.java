@@ -25,5 +25,16 @@ public class Librarian extends Person {
     public void setStartedWorkAt(String startedWorkAt) {
         this.startedWorkAt = startedWorkAt;
     }
+    @Override
+    public String toString() {
+        return "Librarian{" +
+                "id=" + getId() +
+                ", name='" + getName() + '\'' +
+                ", email='" + getEmail() + '\'' +
+                ", phoneNumber='" + getPhoneNumber() + '\'' +
+                ", libraryId=" + libraryId +
+                ", startedWorkAt='" + startedWorkAt + '\'' +
+                '}';
+    }
 }
 
